@@ -201,8 +201,24 @@ class GaussianModel:
         dtype_full = [(attribute, 'f4') for attribute in self.construct_list_of_attributes()]
 
         elements = np.empty(xyz.shape[0], dtype=dtype_full)
-        attributes = np.concatenate((xyz, normals, f_dc, f_rest, opacities, scale, rotation), axis=1)
-        elements[:] = list(map(tuple, attributes))
+        # attributes = np.concatenate((xyz, normals, f_dc, f_rest, opacities, scale, rotation), axis=1)
+        # elements[:] = list(map(tuple, attributes))
+        elements['x'] = xyz[:, 0]
+        elements['y'] = xyz[:, 1]
+        elements['z'] = xyz[:, 2]
+        elements['nx'] = normals[:, 0]
+        elements['ny'] = normals[:, 1]
+        elements['nz'] = normals[:, 2]
+        for i in range(f_dc.shape[1]):
+            elements['f_dc_{}'.format(i)] = f_dc[:, i]
+        for i in range(f_rest.shape[1]):
+            elements['f_rest_{}'.format(i)] = f_rest[:, i]
+        elements['opacity'] = opacities[:, 0]
+        for i in range(scale.shape[1]):
+            elements['scale_{}'.format(i)] = scale[:, i]
+        for i in range(rotation.shape[1]):
+            elements['rot_{}'.format(i)] = rotation[:, i]
+
         el = PlyElement.describe(elements, 'vertex')
         PlyData([el]).write(path)
 
