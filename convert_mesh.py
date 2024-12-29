@@ -66,6 +66,7 @@ def exchange_xy_obj(file_path, obj_save_path):
     
     vertices[:, [0, 1]] = vertices[:, [1, 0]]
     normals[:, [0, 1]] = normals[:, [1, 0]]
+    faces[:, [0, 1, 2]] = faces[:, [2, 1, 0]] # back face通过顶点顺序来区分，对mesh进行镜像后，顶点顺序也需要交换才能正确定义back face
     
     # mesh = o3d.geometry.TriangleMesh()
     # mesh.vertices = o3d.utility.Vector3dVector(vertices)
