@@ -87,6 +87,7 @@ def visualize_mesh(file_path):
 # ply_to_obj(ply_file_path, obj_file_path)
 # visualize_mesh(obj_file_path)
 
-
-exchange_xy_obj("output/lego/train/ours_30000/fuse_post.ply", "output/lego/train/ours_30000/fuse_post.obj")
-visualize_mesh("output/lego/train/ours_30000/fuse_post.obj")
+plyfile = "D:/data/DP1258_dji_and_yy_sh1/3d_gaussian_merged_airport/semantic_mesh_converted.ply"
+objfile = "D:/data/DP1258_dji_and_yy_sh1/3d_gaussian_merged_airport/semantic_mesh_converted_ue.obj"
+exchange_xy_obj(plyfile, objfile)
+visualize_mesh(objfile)

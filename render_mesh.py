@@ -212,9 +212,10 @@ def convert_ue_to_colmap_camera(position, quanternion, height, width, fov):
     # T = np.array(new_pos)
 
     # rotx_90 = Rotation.from_rotvec(np.deg2rad(-90) * np.array(R[:, 0]))
-    rotx_90 = get_axis_angle_rotation(R[:, 0], np.deg2rad(-90)) # 注意不是绕世界坐标系的X轴旋转，而是绕自身局部坐标系的X轴旋转
-    R = rotx_90 @ R
+    # rotx_90 = get_axis_angle_rotation(R[:, 0], np.deg2rad(-90)) # 注意不是绕世界坐标系的X轴旋转，而是绕自身局部坐标系的X轴旋转
+    # R = rotx_90 @ R
     # print(R, T)
+    R = R @ Rotation.from_euler('x', -90, degrees=True).as_matrix() # 绕自身x旋转的另一种方法
 
     c2w = np.eye(4, dtype=np.float32)
     c2w[:3, :3] = R
@@ -237,17 +238,32 @@ def convert_colmap_to_ue_camera(colmap_camera):
     R, T = c2w[:3, :3], c2w[:3, 3]
     M = np.array([[0, 1, 0],[1, 0, 0],[0, 0, 1]])
 
-    # # 方式1：正向思维，先进行手系转换，再旋转到目标位姿
-    # R = M @ R @ M.T
+    # 方式1：正向思维，先进行手系转换，再旋转到目标位姿
+    # （1）通过旋转矩阵
+    R = M @ R @ M.T
+    T = M @ T
+    # # （2）通过交换四元数分量
+    # new_quat = Rotation.from_matrix(R).as_quat()
+    # new_quat = [new_quat[1], new_quat[0], new_quat[2], -new_quat[3]]
+    # R = Rotation.from_quat(new_quat).as_matrix()
     # T = M @ T
+
     # roty_90 = get_axis_angle_rotation(R[:, 1], np.deg2rad(90), left_hand=True) # 注意为左手坐标系
     # R = roty_90 @ R
+    R = R @ Rotation.from_euler('y', -90, degrees=True).as_matrix() # 绕自身x旋转的另一种方法
 
-    # 方式2：逆向思维，COLMAP坐标系中先转到UE坐标系相同位姿，再进行手系转换
-    roty_90 = get_axis_angle_rotation(R[:, 0], np.deg2rad(90)) 
-    R = roty_90 @ R
-    R = M @ R @ M.T # 手系转换
-    T = M @ T
+    # # 方式2：逆向思维，COLMAP坐标系中先转到UE坐标系相同位姿，再进行手系转换
+    # roty_90 = get_axis_angle_rotation(R[:, 0], np.deg2rad(90)) 
+    # R = roty_90 @ R
+    # # R = R @ Rotation.from_euler('x', 90, degrees=True).as_matrix() # 绕自身x旋转的另一种方法
+    # # （1）通过旋转矩阵
+    # R = M @ R @ M.T # 手系转换
+    # T = M @ T
+    # # （2）通过交换四元数分量
+    # # new_quat = Rotation.from_matrix(R).as_quat()
+    # # new_quat = [new_quat[1], new_quat[0], new_quat[2], -new_quat[3]]
+    # # R = Rotation.from_quat(new_quat).as_matrix()
+    # # T = M @ T
     
     ue_rotation = R
     ue_position = T
@@ -286,13 +302,17 @@ if __name__ == "__main__":
     #                            image_path=None, image_name=camera_infos[0].image_name, 
     #                            width=1920, height=1080)
 
-
-    colmap_camera = convert_ue_to_colmap_camera(position=np.array([-4.30573702,1.67591059,2.61871505]), 
-                                                quanternion=np.array([-0.0389530882,-0.204229221,0.183260664,-0.960827053]),
+    pos=[0.0674329376,-2.08051041,2.26654663]
+    quat=[-0.283864349,0.249367356,0.695590079,0.61105758]
+    colmap_camera = convert_ue_to_colmap_camera(position=np.array(pos), 
+                                                quanternion=np.array(quat),
                                                 height=1080, width=1920, fov=90)
     ue_position, ue_quaternion = convert_colmap_to_ue_camera(colmap_camera)
-    # visualize_camera_and_gaussians([colmap_camera], mesh_file)
+    print(f"original ue:\n    Position: {pos}\n    Quaternion: {quat}")
+    print(f"ue covert to colmap:\n    Position: {(-colmap_camera.R @ colmap_camera.T).tolist()}\n    Quaternion: {Rotation.from_matrix(colmap_camera.R).as_quat().tolist()}")
+    print(f"colmap covert to ue:\n    Position: {ue_position.tolist()}\n    Quaternion: {ue_quaternion.tolist()}")
 
+    # # visualize_camera_and_gaussians([colmap_camera], mesh_file)
     # images = render_mesh(mesh_file, colmap_camera, device)
     # image_cv2 = cv2.cvtColor((images[0, ..., :3].cpu().numpy()*255).astype(np.uint8), cv2.COLOR_RGB2BGR)
     # cv2.imwrite("output/lego/mesh_rendering.png", image_cv2)

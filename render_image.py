@@ -173,8 +173,10 @@ if __name__ == "__main__":
     # cam_info = convert_ue_to_colmap_camera(position=np.array([-3.00,0,1.00]), 
     #                                         quanternion=np.array([0,0,0,1]),
     #                                         height=1080, width=1920, fov=90)
-    cam_info = convert_ue_to_colmap_camera(position=np.array([-4.30573702,1.67591059,2.61871505]), 
-                                            quanternion=np.array([-0.0389530882,-0.204229221,0.183260664,-0.960827053]),
+    pos=[0.0674329376,-2.08051041,2.26654663]
+    quat=[-0.283864349,0.249367356,0.695590079,0.61105758]
+    cam_info = convert_ue_to_colmap_camera(position=np.array(pos), 
+                                            quanternion=np.array(quat),
                                             height=1080, width=1920, fov=90)
     camera = Camera(colmap_id=cam_info.uid, R=cam_info.R, T=cam_info.T, 
                     FoVx=cam_info.FovX, FoVy=cam_info.FovY, 
